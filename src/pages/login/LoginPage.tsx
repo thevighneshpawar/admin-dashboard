@@ -5,6 +5,7 @@ import Logo from '../../icons/Logo'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type { crendentials } from '../../types'
 import { login, self } from '../../http/api'
+import { useAuthStore } from '../../store'
 
 const loginUser = async (crendentials:crendentials) => {
   // Simulate a login API call
@@ -16,12 +17,14 @@ const loginUser = async (crendentials:crendentials) => {
 const getSelf = async () => {
   const { data } = await self();
 
-  return data.data;
+  return data;
  
   
 };
 
 const LoginPage = () => {
+
+  const {setUser} = useAuthStore();
 
 
   const{data:selfData,refetch} = useQuery({
@@ -39,11 +42,10 @@ const LoginPage = () => {
     mutationFn:loginUser,
     onSuccess:async()=>{
 
-      refetch();
-      console.log('selfData',selfData); 
+      const data =  await refetch();
+      console.log(data);
       
-      console.log('Login successful!');
-      //aert //redirect
+      setUser(data.data);
     }
 
   })
