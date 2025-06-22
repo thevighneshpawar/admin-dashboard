@@ -5,3 +5,8 @@ import { api } from "./client";
 export const login = (crendentials: crendentials) => {
   api.post("/auth/login", crendentials);
 };
+
+export const self = () => {
+  const res = api.get("/auth/self");
+  return res;
+};

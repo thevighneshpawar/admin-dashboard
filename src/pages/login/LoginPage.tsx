@@ -2,9 +2,9 @@ import React from 'react'
 import { Layout, Card, Space, Form, Input, Checkbox, Button, Flex, Alert } from 'antd'
 import { LockFilled, LockOutlined, UserOutlined } from '@ant-design/icons'
 import Logo from '../../icons/Logo'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import type { crendentials } from '../../types'
-import { login } from '../../http/api'
+import { login, self } from '../../http/api'
 
 const loginUser = async (crendentials:crendentials) => {
   // Simulate a login API call
@@ -13,7 +13,23 @@ const loginUser = async (crendentials:crendentials) => {
   
 }
 
+const getSelf = async () => {
+  const { data } = await self();
+
+  return data.data;
+ 
+  
+};
+
 const LoginPage = () => {
+
+
+  const{data:selfData,refetch} = useQuery({
+    queryKey:['self'],
+    queryFn:getSelf,
+    enabled:false ,// if it is true then it will automatically called when cmponent render
+
+  })
 
   // react query used to manage the state of serverside data // const { data, isLoading, error } = useQuery('login', fetchLoginData)
   //it supports caching, background updates, and more.
@@ -22,6 +38,10 @@ const LoginPage = () => {
     mutationKey: ['login'],
     mutationFn:loginUser,
     onSuccess:async()=>{
+
+      refetch();
+      console.log('selfData',selfData); 
+      
       console.log('Login successful!');
       //aert //redirect
     }
@@ -70,7 +90,7 @@ const LoginPage = () => {
                 )
               }
             <Form initialValues={{ remember: true }}
-            onFinish={(values)=>{
+              onFinish={(values)=>{
               mutate({email:values.username,password:values.password})
               console.log(values);
               

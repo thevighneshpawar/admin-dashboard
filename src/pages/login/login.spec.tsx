@@ -1,10 +1,18 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import LoginPage from "./LoginPage";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+
+const queryclient = new QueryClient()
 
 describe("LoginPage", () => {
   it("should render required fields correctly", () => {
-    render(<LoginPage />);
+    render(
+    <QueryClientProvider client={queryclient}>
+      <LoginPage />
+    </QueryClientProvider>
+    );
     // Add your assertions here
 
     // screen mai three types methods are available
