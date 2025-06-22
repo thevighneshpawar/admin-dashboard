@@ -1,9 +1,33 @@
 import React from 'react'
-import { Layout, Card, Space, Form, Input, Checkbox, Button, Flex } from 'antd'
+import { Layout, Card, Space, Form, Input, Checkbox, Button, Flex, Alert } from 'antd'
 import { LockFilled, LockOutlined, UserOutlined } from '@ant-design/icons'
 import Logo from '../../icons/Logo'
+import { useMutation } from '@tanstack/react-query'
+import type { crendentials } from '../../types'
+import { login } from '../../http/api'
+
+const loginUser = async (crendentials:crendentials) => {
+  // Simulate a login API call
+ const response = await login(crendentials);
+ return response;
+  
+}
 
 const LoginPage = () => {
+
+  // react query used to manage the state of serverside data // const { data, isLoading, error } = useQuery('login', fetchLoginData)
+  //it supports caching, background updates, and more.
+
+  const{mutate, isPending ,isError,error}=useMutation({
+    mutationKey: ['login'],
+    mutationFn:loginUser,
+    onSuccess:async()=>{
+      console.log('Login successful!');
+      //aert //redirect
+    }
+
+  })
+
   return (
     <>
       <Layout
@@ -37,7 +61,21 @@ const LoginPage = () => {
               </Space>
             }
             >
-            <Form initialValues={{ remember: true }}>
+
+              {
+                isError && (
+                  <Alert 
+                  style={{marginBottom:24}}
+                  type='error' message={error?.message}/>
+                )
+              }
+            <Form initialValues={{ remember: true }}
+            onFinish={(values)=>{
+              mutate({email:values.username,password:values.password})
+              console.log(values);
+              
+            }}
+            >
               <Form.Item
               name='username'
               rules={[
@@ -80,6 +118,7 @@ const LoginPage = () => {
                 type='primary'
                 htmlType='submit'
                 style={{ width: '100%' }}
+                loading={isPending}
               >
                 Log in
               </Button>
