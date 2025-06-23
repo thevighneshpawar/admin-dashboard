@@ -10,3 +10,5 @@ export const self = () => {
   const res = api.get("/auth/self");
   return res;
 };
+
+export const logout = () => api.post("/auth/logout");

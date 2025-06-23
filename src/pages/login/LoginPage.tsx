@@ -4,8 +4,9 @@ import { LockFilled, LockOutlined, UserOutlined } from '@ant-design/icons'
 import Logo from '../../icons/Logo'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type { crendentials } from '../../types'
-import { login, self } from '../../http/api'
+import { login, self,logout } from '../../http/api'
 import { useAuthStore } from '../../store'
+import { usePermission } from '../../hooks/usePermission'
 
 const loginUser = async (crendentials:crendentials) => {
   // Simulate a login API call
@@ -24,10 +25,12 @@ const getSelf = async () => {
 
 const LoginPage = () => {
 
-  const {setUser} = useAuthStore();
+  const {isAllowed}= usePermission();
+
+  const {setUser,logout:logoutfromStore} = useAuthStore();
 
 
-  const{data:selfData,refetch} = useQuery({
+  const{refetch} = useQuery({
     queryKey:['self'],
     queryFn:getSelf,
     enabled:false ,// if it is true then it will automatically called when cmponent render
@@ -43,8 +46,16 @@ const LoginPage = () => {
     onSuccess:async()=>{
 
       const data =  await refetch();
-      console.log(data);
-      
+
+      if(!isAllowed(data.data)) {
+        await logout()
+        //this logout from store, to make use null
+       logoutfromStore();
+        return
+
+      }
+    
+
       setUser(data.data);
     }
 
