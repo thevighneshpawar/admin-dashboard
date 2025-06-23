@@ -4,57 +4,65 @@ import { LockFilled, LockOutlined, UserOutlined } from '@ant-design/icons'
 import Logo from '../../icons/Logo'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type { crendentials } from '../../types'
-import { login, self,logout } from '../../http/api'
+import { login, self, logout } from '../../http/api'
 import { useAuthStore } from '../../store'
 import { usePermission } from '../../hooks/usePermission'
 
-const loginUser = async (crendentials:crendentials) => {
+const loginUser = async (crendentials: crendentials) => {
   // Simulate a login API call
- const response = await login(crendentials);
- return response;
-  
+  const response = await login(crendentials);
+  return response;
+
 }
 
 const getSelf = async () => {
   const { data } = await self();
 
   return data;
- 
-  
+
+
 };
+
+ // react query used to manage the state of serverside data // const { data, isLoading, error } = useQuery('login', fetchLoginData)
+  //it supports caching, background updates, and more.
+
 
 const LoginPage = () => {
 
-  const {isAllowed}= usePermission();
+  const { isAllowed } = usePermission();
 
-  const {setUser,logout:logoutfromStore} = useAuthStore();
+  const { setUser, logout: logoutfromStore } = useAuthStore();
 
 
-  const{refetch} = useQuery({
-    queryKey:['self'],
-    queryFn:getSelf,
-    enabled:false ,// if it is true then it will automatically called when cmponent render
+  const { refetch } = useQuery({
+    queryKey: ['self'],
+    queryFn: getSelf,
+    enabled: false,// if it is true then it will automatically called when cmponent render
 
   })
 
-  // react query used to manage the state of serverside data // const { data, isLoading, error } = useQuery('login', fetchLoginData)
-  //it supports caching, background updates, and more.
+  const { mutate: logoutMutate, } = useMutation({
+    mutationKey: ['logout'],
+    mutationFn: logout,
+    onSuccess: async () => {
+      logoutfromStore();
+      return;
+    },
+  });
 
-  const{mutate, isPending ,isError,error}=useMutation({
+  const { mutate, isPending, isError, error } = useMutation({
     mutationKey: ['login'],
-    mutationFn:loginUser,
-    onSuccess:async()=>{
+    mutationFn: loginUser,
+    onSuccess: async () => {
 
-      const data =  await refetch();
+      const data = await refetch();
 
-      if(!isAllowed(data.data)) {
-        await logout()
-        //this logout from store, to make use null
-       logoutfromStore();
+      if (!isAllowed(data.data)) {
+        logoutMutate()
         return
 
       }
-    
+
 
       setUser(data.data);
     }
@@ -67,7 +75,7 @@ const LoginPage = () => {
         style={{ height: '100vh', display: 'grid', placeItems: 'center' }}
       >
         <Space direction='vertical' align='center' size={'large'}>
-         
+
           <Layout.Content
             style={{
               display: 'flex',
@@ -75,89 +83,89 @@ const LoginPage = () => {
               alignItems: 'center'
             }}
           >
-           <Logo/>
+            <Logo />
           </Layout.Content>
 
-            <Card
+          <Card
             variant={'borderless'}
             style={{ width: 300 }}
             title={
               <Space
-              style={{
-                width: '100%',
-                justifyContent: 'center',
-                fontSize: 16
-              }}
+                style={{
+                  width: '100%',
+                  justifyContent: 'center',
+                  fontSize: 16
+                }}
               >
-              <LockFilled />
-              Sign in
+                <LockFilled />
+                Sign in
               </Space>
             }
-            >
+          >
 
-              {
-                isError && (
-                  <Alert 
-                  style={{marginBottom:24}}
-                  type='error' message={error?.message}/>
-                )
-              }
+            {
+              isError && (
+                <Alert
+                  style={{ marginBottom: 24 }}
+                  type='error' message={error?.message} />
+              )
+            }
             <Form initialValues={{ remember: true }}
-              onFinish={(values)=>{
-              mutate({email:values.username,password:values.password})
-              console.log(values);
-              
-            }}
+              onFinish={(values) => {
+                mutate({ email: values.username, password: values.password })
+                console.log(values);
+
+              }}
             >
               <Form.Item
-              name='username'
-              rules={[
-                {
-                required: true,
-                message: 'Please input your username!'
-                },
-                {
-                type: 'email',
-                message: 'Please input a valid email address!'
-                }
-              ]}
+                name='username'
+                rules={[
+                  {
+                    required: true,
+                    message: 'Please input your username!'
+                  },
+                  {
+                    type: 'email',
+                    message: 'Please input a valid email address!'
+                  }
+                ]}
               >
-              <Input prefix={<UserOutlined />} placeholder='Username' />
+                <Input prefix={<UserOutlined />} placeholder='Username' />
               </Form.Item>
               <Form.Item
-              name='password'
-              rules={[
-                {
-                required: true,
-                message: 'Please input your Password!'
-                }
-              ]}
+                name='password'
+                rules={[
+                  {
+                    required: true,
+                    message: 'Please input your Password!'
+                  }
+                ]}
               >
-              <Input.Password
-                prefix={<LockOutlined />}
-                placeholder='Password'
-              />
+                <Input.Password
+                  prefix={<LockOutlined />}
+                  placeholder='Password'
+                />
               </Form.Item>
               <Flex justify='space-between'>
-              <Form.Item name='remember' valuePropName='checked'>
-                <Checkbox>Remember me</Checkbox>
-              </Form.Item>
-              <a href='' id='login-form-forgot'>
-                Forgot password?
-              </a>
+                <Form.Item name='remember' valuePropName='checked'>
+                  <Checkbox>Remember me</Checkbox>
+                </Form.Item>
+                <a href='' id='login-form-forgot'>
+                  Forgot password?
+                </a>
               </Flex>
               <Form.Item>
-              <Button
-                type='primary'
-                htmlType='submit'
-                style={{ width: '100%' }}
-                loading={isPending}
-              >
-                Log in
-              </Button>
+                <Button
+                  type='primary'
+                  htmlType='submit'
+                  style={{ width: '100%' }}
+                  loading={isPending}
+                >
+                  Log in
+                </Button>
               </Form.Item>
             </Form>
-            </Card>
+          </Card>
 
         </Space>
       </Layout>
