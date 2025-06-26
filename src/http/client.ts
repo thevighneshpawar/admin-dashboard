@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useAuthStore } from "../store";
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_API_URL,
@@ -8,3 +9,36 @@ export const api = axios.create({
     Accept: "application/json",
   },
 });
+
+const refreshToken = async () => {
+  await axios.post(
+    `${import.meta.env.VITE_BACKEND_API_URL}/auth/refresh`,
+    {},
+    {
+      withCredentials: true,
+    }
+  );
+};
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    const headers = { ...originalRequest.headers };
+
+    if (error.response.status === 401 && !originalRequest._retry) {
+      try {
+        originalRequest._retry = true;
+        await refreshToken();
+        return api.request({ ...originalRequest, headers });
+      } catch (error) {
+        console.error("Token Refresh Error", error);
+        useAuthStore.getState().logout();
+        return Promise.reject(error);
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
