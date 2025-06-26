@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { Navigate, NavLink, Outlet } from 'react-router-dom'
 import { useAuthStore } from '../store'
-import Icon, { HomeOutlined, UserOutlined } from '@ant-design/icons';
-import { Breadcrumb, Layout, Menu, theme } from 'antd';
+import Icon, { BellFilled, HomeOutlined, UserOutlined } from '@ant-design/icons';
+import { Avatar, Badge, Breadcrumb, Dropdown, Flex, Layout, Menu, Space, theme } from 'antd';
 import Sider from 'antd/es/layout/Sider';
 import { Content, Footer, Header } from 'antd/es/layout/layout';
 import Logo from '../icons/Logo';
@@ -11,6 +11,8 @@ import UserIcon from '../icons/UserIcon';
 import { foodIcon } from '../icons/FoodIcon';
 import { BagIcon } from '../icons/BagIcon';
 import GiftIcon from '../icons/GiftIcon';
+import { useMutation } from '@tanstack/react-query';
+import { logout } from '../http/api';
 
 const items = [
     {
@@ -47,10 +49,21 @@ const items = [
 
 const Dashboard = () => {
 
+    const { logout: logoutfromStore } = useAuthStore();
+
+    const { mutate: logoutMutate, } = useMutation({
+        mutationKey: ['logout'],
+        mutationFn: logout,
+        onSuccess: async () => {
+            logoutfromStore();
+            return;
+        },
+    });
+
     const { user } = useAuthStore()
     const [collapsed, setCollapsed] = useState(false);
     const {
-        token: { colorBgContainer },
+        token: { colorBgContainer, colorPrimary },
     } = theme.useToken();
 
     if (user === null) {
@@ -68,7 +81,35 @@ const Dashboard = () => {
                     <Menu theme="light" defaultSelectedKeys={['/']} mode="inline" items={items} />
                 </Sider>
                 <Layout>
-                    <Header style={{ padding: 0, background: colorBgContainer }} />
+                    <Header style={{ paddingLeft: "16px", paddingRight: "16px", background: colorBgContainer }} >
+
+                        <Flex gap="middle" align="start" justify='space-between' >
+                            <Badge text="global" status='success' />
+
+                            <Space size={16}>
+                                <Badge dot={true}>
+                                    <BellFilled />
+                                </Badge>
+                                <Dropdown menu={{
+                                    items: [
+                                        {
+                                            key: 'Logout',
+                                            label: "Logout",
+                                            onClick: () => {
+                                                logoutMutate();
+                                            }
+                                        },
+
+                                    ]
+                                }} placement="bottomRight" arrow>
+                                    <Avatar style={{ backgroundColor: '#fde3cf', color: '#f56a00' }}>U</Avatar>
+                                </Dropdown>
+
+                            </Space>
+                        </Flex>
+
+
+                    </Header>
                     <Content style={{ margin: '0 16px' }}>
 
                         <Outlet />
@@ -78,7 +119,6 @@ const Dashboard = () => {
                     </Footer>
                 </Layout>
             </Layout>
-            <Outlet />
         </div>
     )
 }
