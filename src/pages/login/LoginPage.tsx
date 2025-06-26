@@ -4,9 +4,10 @@ import { LockFilled, LockOutlined, UserOutlined } from '@ant-design/icons'
 import Logo from '../../icons/Logo'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type { crendentials } from '../../types'
-import { login, self, logout } from '../../http/api'
+import { login, self } from '../../http/api'
 import { useAuthStore } from '../../store'
 import { usePermission } from '../../hooks/usePermission'
+import { useLogout } from '../../hooks/useLogout'
 
 const loginUser = async (crendentials: crendentials) => {
   // Simulate a login API call
@@ -23,15 +24,17 @@ const getSelf = async () => {
 
 };
 
- // react query used to manage the state of serverside data // const { data, isLoading, error } = useQuery('login', fetchLoginData)
-  //it supports caching, background updates, and more.
+// react query used to manage the state of serverside data // const { data, isLoading, error } = useQuery('login', fetchLoginData)
+//it supports caching, background updates, and more.
 
 
 const LoginPage = () => {
 
   const { isAllowed } = usePermission();
 
-  const { setUser, logout: logoutfromStore } = useAuthStore();
+  const { logoutMutate } = useLogout();
+
+  const { setUser } = useAuthStore();
 
 
   const { refetch } = useQuery({
@@ -41,14 +44,7 @@ const LoginPage = () => {
 
   })
 
-  const { mutate: logoutMutate, } = useMutation({
-    mutationKey: ['logout'],
-    mutationFn: logout,
-    onSuccess: async () => {
-      logoutfromStore();
-      return;
-    },
-  });
+
 
   const { mutate, isPending, isError, error } = useMutation({
     mutationKey: ['login'],

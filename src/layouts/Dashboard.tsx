@@ -13,6 +13,7 @@ import { BagIcon } from '../icons/BagIcon';
 import GiftIcon from '../icons/GiftIcon';
 import { useMutation } from '@tanstack/react-query';
 import { logout } from '../http/api';
+import { useLogout } from '../hooks/useLogout';
 
 const items = [
     {
@@ -49,21 +50,11 @@ const items = [
 
 const Dashboard = () => {
 
-    const { logout: logoutfromStore } = useAuthStore();
-
-    const { mutate: logoutMutate, } = useMutation({
-        mutationKey: ['logout'],
-        mutationFn: logout,
-        onSuccess: async () => {
-            logoutfromStore();
-            return;
-        },
-    });
-
+    const { logoutMutate } = useLogout();
     const { user } = useAuthStore()
     const [collapsed, setCollapsed] = useState(false);
     const {
-        token: { colorBgContainer, colorPrimary },
+        token: { colorBgContainer },
     } = theme.useToken();
 
     if (user === null) {
