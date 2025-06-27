@@ -1,10 +1,11 @@
 import { Breadcrumb, Space, Table } from 'antd'
 import React from 'react'
 import { RightOutlined } from '@ant-design/icons'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { getUsers } from '../../http/api'
 import { useQuery } from '@tanstack/react-query'
 import type { User } from '../../types'
+import { useAuthStore } from '../../store'
 
 const columns = [
     {
@@ -34,12 +35,17 @@ const columns = [
 
 const Userspage = () => {
 
+
+
     const { data, isLoading, isError, error } = useQuery({
         queryKey: ['users'],
         queryFn: getUsers,
     })
 
-    console.log('Users data:', data);
+    const { user } = useAuthStore();
+    if (user?.role !== 'admin') {
+        return <Navigate to="/" replace />; // Redirect if not admin
+    }
 
 
     const users = data?.data.data || [];

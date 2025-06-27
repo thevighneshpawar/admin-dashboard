@@ -15,43 +15,65 @@ import { useMutation } from '@tanstack/react-query';
 import { logout } from '../http/api';
 import { useLogout } from '../hooks/useLogout';
 
-const items = [
-    {
-        key: '/',
-        icon: <Icon component={Home} />,
-        label: <NavLink to="/">Home</NavLink>
+const getMenuItems = (role: string) => {
 
-    },
-    {
-        key: '/users',
-        icon: <Icon component={UserIcon} />,
-        label: <NavLink to="/users">Users</NavLink>
+    const baseItems = [
 
-    },
-    {
-        key: '/restaurants',
-        icon: <Icon component={foodIcon} />,
-        label: <NavLink to="/restaurants">Restaurants</NavLink>
+        {
+            key: '/',
+            icon: <Icon component={Home} />,
+            label: <NavLink to="/">Home</NavLink>
 
-    },
-    {
-        key: '/products',
-        icon: <Icon component={BagIcon} />,
-        label: <NavLink to="/products">Products</NavLink>
+        },
 
-    },
-    {
-        key: '/promos',
-        icon: <Icon component={GiftIcon} />,
-        label: <NavLink to="/promos">Promos</NavLink>
+        {
+            key: '/restaurants',
+            icon: <Icon component={foodIcon} />,
+            label: <NavLink to="/restaurants">Restaurants</NavLink>
 
-    },
-]
+        },
+        {
+            key: '/products',
+            icon: <Icon component={BagIcon} />,
+            label: <NavLink to="/products">Products</NavLink>
+
+        },
+        {
+            key: '/promos',
+            icon: <Icon component={GiftIcon} />,
+            label: <NavLink to="/promos">Promos</NavLink>
+
+        },
+
+    ]
+
+    if (role === 'admin') {
+        const menus = [...baseItems]
+
+        menus.splice(1, 0, {
+            key: '/users',
+            icon: <Icon component={UserIcon} />,
+            label: <NavLink to="/users">Users</NavLink>
+
+        })
+
+
+        return menus;
+
+    }
+}
+
+
 
 const Dashboard = () => {
 
-    const { logoutMutate } = useLogout();
+
+
     const { user } = useAuthStore()
+    const items = getMenuItems(user?.role || 'user');
+
+    const { logoutMutate } = useLogout();
+
     const [collapsed, setCollapsed] = useState(false);
     const {
         token: { colorBgContainer },
