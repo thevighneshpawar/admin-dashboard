@@ -64,7 +64,10 @@ const Userspage = () => {
                 {isError && <p>Error: {error instanceof Error ? error.message : 'An error occurred'}</p>}
 
 
-                <UsersFilter />
+                <UsersFilter onFilterChange={(filterName, filterValue) => {
+                    console.log(`Filter changed: ${filterName} = ${filterValue}`);
+
+                }} />
                 <Table columns={columns} dataSource={users} />
             </Space>
 

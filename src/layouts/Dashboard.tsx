@@ -61,6 +61,8 @@ const getMenuItems = (role: string) => {
         return menus;
 
     }
+
+    return baseItems;
 }
 
 
