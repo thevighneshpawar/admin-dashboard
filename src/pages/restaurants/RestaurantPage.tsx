@@ -1,13 +1,13 @@
-import { Breadcrumb, Button, Drawer, Form, Space, Table, theme } from 'antd'
+import { Breadcrumb, Button, Drawer, Space, Table } from 'antd'
 import React, { useState } from 'react'
 import { PlusOutlined, RightOutlined } from '@ant-design/icons'
 import { Link, Navigate } from 'react-router-dom'
-import { getUsers } from '../../http/api'
+import { getRestaurants, } from '../../http/api'
 import { useQuery } from '@tanstack/react-query'
-import type { User } from '../../types'
+
 import { useAuthStore } from '../../store'
-import UsersFilter from './UsersFilter'
-import UserForm from './forms/UserForm'
+import UsersFilter from '../users/UsersFilter'
+import RestaurantFilter from './RestaurantFilter'
 
 const columns = [
     {
@@ -17,34 +17,24 @@ const columns = [
     },
     {
         title: 'Name',
-        dataIndex: 'firstName',
-        key: 'firstName',
-        render: (_text: string, record: User) => (
-            <div>{`${record.firstName} ${record.lastName}`}</div>
-        )
+        dataIndex: 'name',
+        key: 'name',
+
     },
     {
-        title: 'Email',
-        dataIndex: 'email',
-        key: 'email'
+        title: 'Address',
+        dataIndex: 'address',
+        key: 'address'
     },
-    {
-        title: 'Role',
-        dataIndex: 'role',
-        key: 'role'
-    }
+
 ]
 
-const Userspage = () => {
-
-    const {
-        token: { colorBgLayout },
-    } = theme.useToken();
+const RestaurantPage = () => {
 
     const [draweropen, setDrawerOpen] = useState(false)
     const { data, isLoading, isError, error } = useQuery({
-        queryKey: ['users'],
-        queryFn: getUsers
+        queryKey: ['tenants'],
+        queryFn: getRestaurants
     })
 
     const { user } = useAuthStore()
@@ -57,7 +47,7 @@ const Userspage = () => {
         ) // Redirect if not admin
     }
 
-    const users = data?.data.data || []
+    const restaurants = data?.data.data || []
     return (
         <div>
             <Space
@@ -67,7 +57,7 @@ const Userspage = () => {
             >
                 <Breadcrumb
                     separator={<RightOutlined />}
-                    items={[{ title: <Link to='/'>Dashboard</Link> }, { title: 'Users' }]}
+                    items={[{ title: <Link to='/'>Dashboard</Link> }, { title: 'Restaurants' }]}
                 />
                 {isLoading && <p>Loading...</p>}
                 {isError && (
@@ -77,7 +67,7 @@ const Userspage = () => {
                     </p>
                 )}
 
-                <UsersFilter
+                <RestaurantFilter
                     onFilterChange={(filterName, filterValue) => {
                         console.log(`Filter changed: ${filterName} = ${filterValue}`)
                     }}
@@ -88,18 +78,17 @@ const Userspage = () => {
                         icon={<PlusOutlined />}
                         onClick={() => setDrawerOpen(true)}
                     >
-                        Create User
+                        Create Restaurant
                     </Button>
-                </UsersFilter>
+                </RestaurantFilter>
                 <Table
                     columns={columns}
-                    dataSource={users}
+                    dataSource={restaurants}
                 />
 
                 <Drawer
-                    title='Create user'
+                    title='Create Restaurant'
                     width={720}
-                    styles={{ body: { backgroundColor: colorBgLayout } }}
                     destroyOnHidden={true}
                     onClose={() => setDrawerOpen(false)}
                     open={draweropen}
@@ -109,13 +98,15 @@ const Userspage = () => {
                     </Space>}
                 >
 
-                    <Form layout='vertical'>
-                        <UserForm />
-                    </Form>
+
+                    <p>some content............</p>
+                    <p>some content............</p>
+                    <p>some content............</p>
+                    <p>some content............</p>
                 </Drawer>
             </Space>
         </div>
     )
 }
 
-export default Userspage
+export default RestaurantPage

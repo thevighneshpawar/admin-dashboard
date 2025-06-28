@@ -11,8 +11,6 @@ import UserIcon from '../icons/UserIcon';
 import { foodIcon } from '../icons/FoodIcon';
 import { BagIcon } from '../icons/BagIcon';
 import GiftIcon from '../icons/GiftIcon';
-import { useMutation } from '@tanstack/react-query';
-import { logout } from '../http/api';
 import { useLogout } from '../hooks/useLogout';
 
 const getMenuItems = (role: string) => {
