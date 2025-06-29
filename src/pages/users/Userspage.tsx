@@ -2,12 +2,13 @@ import { Breadcrumb, Button, Drawer, Form, Space, Table, theme } from 'antd'
 import React, { useState } from 'react'
 import { PlusOutlined, RightOutlined } from '@ant-design/icons'
 import { Link, Navigate } from 'react-router-dom'
-import { getUsers } from '../../http/api'
-import { useQuery } from '@tanstack/react-query'
-import type { User } from '../../types'
+import { createUser, getUsers } from '../../http/api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { createUserData, User } from '../../types'
 import { useAuthStore } from '../../store'
 import UsersFilter from './UsersFilter'
 import UserForm from './forms/UserForm'
+import create from '@ant-design/icons/lib/components/IconFont'
 
 const columns = [
     {
@@ -37,6 +38,19 @@ const columns = [
 
 const Userspage = () => {
 
+    const queryClient = useQueryClient() // react query client to manage the state of serverside data
+
+    const [form] = Form.useForm() // antd form it gies all data of form
+
+    const { mutate: userMutate } = useMutation({
+        mutationKey: ["user"],
+        mutationFn: async (user: createUserData) => createUser(user).then(res => res.data),
+        onSuccess: async () => {
+            queryClient.invalidateQueries({ queryKey: ['users'] }) // invalidate the users query to refetch the data
+            return;
+        },
+    });
+
     const {
         token: { colorBgLayout },
     } = theme.useToken();
@@ -56,8 +70,15 @@ const Userspage = () => {
             />
         ) // Redirect if not admin
     }
-
     const users = data?.data.data || []
+
+    const onHandleSubmit = async () => {
+
+        await form.validateFields() // validate the form fields
+        await userMutate(form.getFieldsValue()) // get the form data and pass it to the mutation
+        form.resetFields()
+        setDrawerOpen(false) // close the drawer after successful submission
+    }
     return (
         <div>
             <Space
@@ -101,15 +122,21 @@ const Userspage = () => {
                     width={720}
                     styles={{ body: { backgroundColor: colorBgLayout } }}
                     destroyOnHidden={true}
-                    onClose={() => setDrawerOpen(false)}
+                    onClose={() => {
+                        form.resetFields(); // reset the form fields when drawer is closed
+                        setDrawerOpen(false)
+                    }}
                     open={draweropen}
                     extra={<Space>
-                        <Button type="primary" onClick={() => setDrawerOpen(false)}>Save</Button>
-                        <Button onClick={() => console.log('Cancel')}>Cancel</Button>
+                        <Button type="primary" onClick={onHandleSubmit}>Save</Button>
+                        <Button onClick={() => {
+                            form.resetFields();
+                            setDrawerOpen(false);
+                        }}>Cancel</Button>
                     </Space>}
                 >
 
-                    <Form layout='vertical'>
+                    <Form form={form} layout='vertical'>
                         <UserForm />
                     </Form>
                 </Drawer>
