@@ -23,17 +23,26 @@ const UserForm = () => {
 
                     <Row gutter={24}>
                         <Col span={12}>
-                            <Form.Item label={'First Name'} name="firstName">
+                            <Form.Item label={'First Name'} name="firstName" rules={[
+                                { required: true, message: 'First Name is required' },
+                                { whitespace: true, message: 'First Name cannot be empty' }
+                            ]}>
                                 <Input placeholder="First Name" size='large' />
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item label={'Email'} name="lastName">
+                            <Form.Item label={'Last Name'} name="lastName" rules={[
+                                { required: true, message: 'last Name is required' },
+                                { whitespace: true, message: 'last Name cannot be empty' }
+                            ]}>
                                 <Input placeholder="last Name" size='large' />
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item label={'Email'} name="email">
+                            <Form.Item label={'Email'} name="email" rules={[
+                                { required: true, message: 'Email is required' },
+                                { type: 'email', message: 'Please enter a valid email address' }
+                            ]} >
                                 <Input placeholder="Email" size='large' />
                             </Form.Item>
                         </Col>
@@ -45,7 +54,11 @@ const UserForm = () => {
 
                     <Row gutter={24}>
                         <Col span={12}>
-                            <Form.Item label={'Password'} name="password">
+                            <Form.Item label={'Password'} name="password" rules={[
+                                { required: true, message: 'Password is required' },
+                                { min: 6, message: 'Password must be at least 6 characters' },
+                                { whitespace: true, message: 'Password cannot be empty' }
+                            ]}>
                                 <Input placeholder="Password" type='password' size='large' />
                             </Form.Item>
                         </Col>
@@ -58,7 +71,9 @@ const UserForm = () => {
 
                     <Row gutter={24}>
                         <Col span={12}>
-                            <Form.Item label={'Role'} name="role">
+                            <Form.Item label={'Role'} name="role" rules={[
+                                { required: true, message: 'Role is required' },
+                            ]}>
                                 <Select
                                     style={{ width: "100%" }}
                                     size='large'
@@ -73,7 +88,9 @@ const UserForm = () => {
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item label={'Restaurants'} name="tenantId">
+                            <Form.Item label={'Restaurants'} name="tenantId" rules={[{
+                                required: true, message: 'Restaurant is required'
+                            }]}>
                                 <Select
                                     size='large'
                                     style={{ width: "100%" }}
