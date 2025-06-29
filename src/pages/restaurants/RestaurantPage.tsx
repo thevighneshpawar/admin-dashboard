@@ -36,7 +36,7 @@ const RestaurantPage = () => {
         queryKey: ['tenants'],
         queryFn: getRestaurants
     })
-
+    const restaurants = data?.data.data || []
     const { user } = useAuthStore()
     if (user?.role !== 'admin') {
         return (
@@ -47,7 +47,7 @@ const RestaurantPage = () => {
         ) // Redirect if not admin
     }
 
-    const restaurants = data?.data.data || []
+
     return (
         <div>
             <Space

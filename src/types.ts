@@ -17,3 +17,9 @@ export interface User {
   role: string;
   tenant?: Tenant;
 }
+
+export type Tenant = {
+  id: number;
+  name: string;
+  address: string;
+};
