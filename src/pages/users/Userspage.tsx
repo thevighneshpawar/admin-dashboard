@@ -1,9 +1,9 @@
-import { Breadcrumb, Button, Drawer, Form, Space, Table, theme } from 'antd'
+import { Breadcrumb, Button, Drawer, Flex, Form, Space, Spin, Table, theme } from 'antd'
 import React, { useState } from 'react'
-import { PlusOutlined, RightOutlined } from '@ant-design/icons'
+import { LoadingOutlined, PlusOutlined, RightOutlined } from '@ant-design/icons'
 import { Link, Navigate } from 'react-router-dom'
 import { createUser, getUsers } from '../../http/api'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { createUserData, User } from '../../types'
 import { useAuthStore } from '../../store'
 import UsersFilter from './UsersFilter'
@@ -66,16 +66,17 @@ const Userspage = () => {
 
 
     const [draweropen, setDrawerOpen] = useState(false)
-    const { data, isLoading, isError, error } = useQuery({
+    const { data, isFetching, isError, error } = useQuery({
         queryKey: ['users', queryParams],
         queryFn: () => {
             // const queryString = `?currentPage=${queryParams.currentPage}&perPage=${queryParams.perPage}`; // construct the query string for pagination
 
             const queryString = new URLSearchParams(queryParams as unknown as Record<string, string>).toString()
-            console.log(queryString);
+
 
             return getUsers(queryString).then(res => res.data); // fetch users data from the server
         },
+        placeholderData: keepPreviousData
     })
 
     const { user } = useAuthStore()
@@ -105,17 +106,19 @@ const Userspage = () => {
                 style={{ width: '100%' }}
                 direction='vertical'
             >
-                <Breadcrumb
-                    separator={<RightOutlined />}
-                    items={[{ title: <Link to='/'>Dashboard</Link> }, { title: 'Users' }]}
-                />
-                {isLoading && <p>Loading...</p>}
-                {isError && (
-                    <p>
-                        Error:{' '}
-                        {error instanceof Error ? error.message : 'An error occurred'}
-                    </p>
-                )}
+                <Flex justify='space-between'>
+                    <Breadcrumb
+                        separator={<RightOutlined />}
+                        items={[{ title: <Link to='/'>Dashboard</Link> }, { title: 'Users' }]}
+                    />
+                    {isFetching && <Spin indicator={<LoadingOutlined spin />} />}
+                    {isError && (
+                        <p>
+                            Error:{' '}
+                            {error instanceof Error ? error.message : 'An error occurred'}
+                        </p>
+                    )}
+                </Flex>
 
                 <UsersFilter
                     onFilterChange={(filterName, filterValue) => {
