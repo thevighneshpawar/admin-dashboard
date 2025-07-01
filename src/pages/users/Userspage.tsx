@@ -8,7 +8,7 @@ import type { createUserData, User } from '../../types'
 import { useAuthStore } from '../../store'
 import UsersFilter from './UsersFilter'
 import UserForm from './forms/UserForm'
-import create from '@ant-design/icons/lib/components/IconFont'
+import { PER_PAGE } from '../../constants'
 
 const columns = [
     {
@@ -55,10 +55,27 @@ const Userspage = () => {
         token: { colorBgLayout },
     } = theme.useToken();
 
+
+    const [queryParams, setQueryParams] = useState({
+
+        currentPage: 1,
+        perPage: PER_PAGE,
+
+    }) // state to manage the query parameters for pagination and sorting
+
+
+
     const [draweropen, setDrawerOpen] = useState(false)
     const { data, isLoading, isError, error } = useQuery({
-        queryKey: ['users'],
-        queryFn: getUsers
+        queryKey: ['users', queryParams],
+        queryFn: () => {
+            // const queryString = `?currentPage=${queryParams.currentPage}&perPage=${queryParams.perPage}`; // construct the query string for pagination
+
+            const queryString = new URLSearchParams(queryParams as unknown as Record<string, string>).toString()
+            console.log(queryString);
+
+            return getUsers(queryString).then(res => res.data); // fetch users data from the server
+        },
     })
 
     const { user } = useAuthStore()
@@ -70,7 +87,9 @@ const Userspage = () => {
             />
         ) // Redirect if not admin
     }
-    const users = data?.data.data || []
+    const users = data?.data || []
+
+
 
     const onHandleSubmit = async () => {
 
@@ -115,6 +134,18 @@ const Userspage = () => {
                 <Table
                     columns={columns}
                     dataSource={users}
+                    pagination={{
+                        current: queryParams.currentPage,
+                        pageSize: queryParams.perPage,
+                        total: data?.total || 0,
+                        onChange: (page, pageSize) => {
+                            setQueryParams({
+                                ...queryParams,
+                                currentPage: page,
+                                perPage: pageSize
+                            })
+                        }
+                    }}
                 />
 
                 <Drawer

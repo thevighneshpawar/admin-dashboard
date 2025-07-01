@@ -1,4 +1,4 @@
-import type { createUserData, crendentials } from "../types";
+import type { createTenantData, createUserData, crendentials } from "../types";
 import { api } from "./client";
 
 //auth -service
@@ -12,6 +12,9 @@ export const self = () => {
 };
 
 export const logout = () => api.post("/auth/logout");
-export const getUsers = () => api.get("/users");
+export const getUsers = (queryString: string) =>
+  api.get(`/users?${queryString}`);
 export const getRestaurants = () => api.get("/tenants");
 export const createUser = (user: createUserData) => api.post("/users", user);
+export const createTenants = (tenant: createTenantData) =>
+  api.post("/tenants", tenant);

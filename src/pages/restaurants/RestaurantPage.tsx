@@ -1,13 +1,14 @@
-import { Breadcrumb, Button, Drawer, Space, Table } from 'antd'
+import { Breadcrumb, Button, Drawer, Form, Space, Table } from 'antd'
 import React, { useState } from 'react'
 import { PlusOutlined, RightOutlined } from '@ant-design/icons'
 import { Link, Navigate } from 'react-router-dom'
-import { getRestaurants, } from '../../http/api'
-import { useQuery } from '@tanstack/react-query'
+import { createTenants, getRestaurants, } from '../../http/api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuthStore } from '../../store'
-import UsersFilter from '../users/UsersFilter'
+import RestaurantForm from './forms/RestaurantForm'
 import RestaurantFilter from './RestaurantFilter'
+import type { createTenantData } from '../../types'
 
 const columns = [
     {
@@ -30,6 +31,29 @@ const columns = [
 ]
 
 const RestaurantPage = () => {
+
+
+    const queryClient = useQueryClient() // react query client to manage the state of serverside data
+
+    const [form] = Form.useForm() // antd form it gies all data of form
+
+    const { mutate: tenantMutate } = useMutation({
+        mutationKey: ["tenant"],
+        mutationFn: async (tenant: createTenantData) => createTenants(tenant).then(res => res.data),
+        onSuccess: async () => {
+            queryClient.invalidateQueries({ queryKey: ['tenants'] }) // invalidate the tenants query to refetch the data
+            return;
+        },
+    });
+
+
+    const onHandleSubmit = async () => {
+
+        await form.validateFields() // validate the form fields
+        await tenantMutate(form.getFieldsValue()) // get the form data and pass it to the mutation
+        form.resetFields()
+        setDrawerOpen(false) // close the drawer after successful submission
+    }
 
     const [draweropen, setDrawerOpen] = useState(false)
     const { data, isLoading, isError, error } = useQuery({
@@ -93,16 +117,14 @@ const RestaurantPage = () => {
                     onClose={() => setDrawerOpen(false)}
                     open={draweropen}
                     extra={<Space>
-                        <Button type="primary" onClick={() => setDrawerOpen(false)}>Save</Button>
-                        <Button onClick={() => console.log('Cancel')}>Cancel</Button>
+                        <Button type="primary" onClick={onHandleSubmit}>Save</Button>
+                        <Button onClick={() => setDrawerOpen(false)}>Cancel</Button>
                     </Space>}
                 >
 
-
-                    <p>some content............</p>
-                    <p>some content............</p>
-                    <p>some content............</p>
-                    <p>some content............</p>
+                    <Form form={form}>
+                        < RestaurantForm />
+                    </Form>
                 </Drawer>
             </Space>
         </div>
