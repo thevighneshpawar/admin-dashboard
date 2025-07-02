@@ -34,6 +34,15 @@ const columns = [
         title: 'Role',
         dataIndex: 'role',
         key: 'role'
+    },
+    {
+        title: 'Restaurant',
+        dataIndex: 'tenant',
+        key: 'tenant',
+        render: (_text: string, record: User) => (
+            <div>{record.tenant?.name ? record.tenant.name : " "}</div>
+        )
+
     }
 ]
 
@@ -102,6 +111,7 @@ const Userspage = () => {
             setQueryParams((prev) => ({
                 ...prev,
                 q: value,
+                currentPage: 1,
             }))
         }, 1000)
 
@@ -126,7 +136,7 @@ const Userspage = () => {
             setQueryParams((prev) => ({
                 ...prev,
                 ...changedFilterFields,
-
+                currentPage: 1,
             }))
         }
 

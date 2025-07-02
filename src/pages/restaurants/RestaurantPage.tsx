@@ -1,14 +1,16 @@
 import { Breadcrumb, Button, Drawer, Form, Space, Table } from 'antd'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { PlusOutlined, RightOutlined } from '@ant-design/icons'
 import { Link, Navigate } from 'react-router-dom'
 import { createTenants, getRestaurants, } from '../../http/api'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuthStore } from '../../store'
 import RestaurantForm from './forms/RestaurantForm'
 import RestaurantFilter from './RestaurantFilter'
-import type { createTenantData } from '../../types'
+import type { createTenantData, FieldData } from '../../types'
+import { PER_PAGE } from '../../constants'
+import { debounce } from 'lodash'
 
 const columns = [
     {
@@ -36,6 +38,11 @@ const RestaurantPage = () => {
     const queryClient = useQueryClient() // react query client to manage the state of serverside data
 
     const [form] = Form.useForm() // antd form it gies all data of form
+    const [restoForm] = Form.useForm()
+    const [queryParams, setQueryParams] = useState({
+        currentPage: 1,
+        perPage: PER_PAGE,
+    }) // state to manage the pagination of the table
 
     const { mutate: tenantMutate } = useMutation({
         mutationKey: ["tenant"],
@@ -57,10 +64,32 @@ const RestaurantPage = () => {
 
     const [draweropen, setDrawerOpen] = useState(false)
     const { data, isLoading, isError, error } = useQuery({
-        queryKey: ['tenants'],
-        queryFn: getRestaurants
+        queryKey: ['tenants', queryParams], // query key to identify the query
+        queryFn: () => {
+            // const queryString = `?currentPage=${queryParams.currentPage}&perPage=${queryParams.perPage}`; // construct the query string for pagination
+
+            const filteredParams = Object.fromEntries(
+                Object.entries(queryParams).filter((item) => !!item[1]) // filter out empty values from queryParams
+            )
+            const queryString = new URLSearchParams(filteredParams as unknown as Record<string, string>).toString()
+
+
+            return getRestaurants(queryString).then(res => res.data); // fetch users data from the server
+        },
+        placeholderData: keepPreviousData
     })
-    const restaurants = data?.data.data || []
+    const restaurants = data?.data || []
+
+    const debouncedQUpdate = useMemo(() => {
+        return debounce((value: string | undefined) => {
+            setQueryParams((prev) => ({
+                ...prev,
+                q: value,
+                currentPage: 1,
+            }))
+        }, 1000)
+    }, [])
+
     const { user } = useAuthStore()
     if (user?.role !== 'admin') {
         return (
@@ -69,6 +98,33 @@ const RestaurantPage = () => {
                 replace
             />
         ) // Redirect if not admin
+    }
+
+    const onFilterChange = (changedValues: FieldData[]) => {
+        //console.log('changedValues', changedValues);
+
+        const changedFilterFields = changedValues.map((item) => ({
+            [item.name[0]]: item.value,
+        })).reduce((acc, item) => ({ ...acc, ...item }), {})
+
+        //console.log(changedFilterFields);
+
+
+        if ('q' in changedFilterFields) {
+
+            debouncedQUpdate(changedFilterFields.q as string) // if q is changed, update the query params with debounce
+
+        } else {
+
+            setQueryParams((prev) => ({
+                ...prev,
+                ...changedFilterFields,
+                currentPage: 1,
+            }))
+        }
+
+
+
     }
 
 
@@ -91,24 +147,35 @@ const RestaurantPage = () => {
                     </p>
                 )}
 
-                <RestaurantFilter
-                    onFilterChange={(filterName, filterValue) => {
-                        console.log(`Filter changed: ${filterName} = ${filterValue}`)
-                    }}
-                >
+                <Form form={restoForm} onFieldsChange={onFilterChange}>
 
-                    <Button
-                        type='primary'
-                        icon={<PlusOutlined />}
-                        onClick={() => setDrawerOpen(true)}
-                    >
-                        Create Restaurant
-                    </Button>
-                </RestaurantFilter>
+                    <RestaurantFilter>
+
+                        <Button
+                            type='primary'
+                            icon={<PlusOutlined />}
+                            onClick={() => setDrawerOpen(true)}
+                        >
+                            Create Restaurant
+                        </Button>
+                    </RestaurantFilter>
+                </Form>
+
                 <Table
                     columns={columns}
                     dataSource={restaurants}
-                />
+                    pagination={{
+                        current: queryParams.currentPage,
+                        pageSize: queryParams.perPage,
+                        total: data?.total || 0,
+                        onChange: (page, pageSize) => {
+                            setQueryParams({
+                                ...queryParams,
+                                currentPage: page,
+                                perPage: pageSize
+                            })
+                        }
+                    }} />
 
                 <Drawer
                     title='Create Restaurant'

@@ -1,26 +1,29 @@
-import { Card, Col, Input, Row, } from 'antd'
+import { Card, Col, Form, Input, Row, } from 'antd'
 import React from 'react'
+
 
 type RestaurantFilterProps = {
     children?: React.ReactNode,
-    onFilterChange: (filterName: string, filterValue: string) => void
+    //onFilterChange: (filterName: string, filterValue: string) => void
 }
 
-const RestaurantFilter = ({ onFilterChange, children }: RestaurantFilterProps) => {
+const RestaurantFilter = ({ children }: RestaurantFilterProps) => {
     return (
         <Card>
             <Row justify={'space-between'}>
-                <Col span={12} >
+                <Form.Item name='q'>
 
-                    <Input.Search
 
-                        placeholder='search'
-                        onChange={(e) =>
-                            onFilterChange('RestaurantearchQuery', e.target.value)
-                        }
-                    />
+                    <Col span={12} >
 
-                </Col>
+                        <Input.Search
+
+                            placeholder='search'
+
+                        />
+
+                    </Col>
+                </Form.Item>
                 <Col>
                     {children}
                 </Col>

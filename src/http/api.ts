@@ -14,7 +14,8 @@ export const self = () => {
 export const logout = () => api.post("/auth/logout");
 export const getUsers = (queryString: string) =>
   api.get(`/users?${queryString}`);
-export const getRestaurants = () => api.get("/tenants");
+export const getRestaurants = (queryString: string) =>
+  api.get(`/tenants?${queryString}`);
 export const createUser = (user: createUserData) => api.post("/users", user);
 export const createTenants = (tenant: createTenantData) =>
   api.post("/tenants", tenant);
