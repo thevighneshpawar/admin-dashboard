@@ -4,7 +4,7 @@ import { LoadingOutlined, PlusOutlined, RightOutlined } from '@ant-design/icons'
 import { Link, Navigate } from 'react-router-dom'
 import { createUser, getUsers } from '../../http/api'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { createUserData, User } from '../../types'
+import type { createUserData, FieldData, User } from '../../types'
 import { useAuthStore } from '../../store'
 import UsersFilter from './UsersFilter'
 import UserForm from './forms/UserForm'
@@ -41,6 +41,8 @@ const Userspage = () => {
     const queryClient = useQueryClient() // react query client to manage the state of serverside data
 
     const [form] = Form.useForm() // antd form it gies all data of form
+    const [filterForm] = Form.useForm()
+
 
     const { mutate: userMutate } = useMutation({
         mutationKey: ["user"],
@@ -71,7 +73,10 @@ const Userspage = () => {
         queryFn: () => {
             // const queryString = `?currentPage=${queryParams.currentPage}&perPage=${queryParams.perPage}`; // construct the query string for pagination
 
-            const queryString = new URLSearchParams(queryParams as unknown as Record<string, string>).toString()
+            const filteredParams = Object.fromEntries(
+                Object.entries(queryParams).filter((item) => !!item[1]) // filter out empty values from queryParams
+            )
+            const queryString = new URLSearchParams(filteredParams as unknown as Record<string, string>).toString()
 
 
             return getUsers(queryString).then(res => res.data); // fetch users data from the server
@@ -90,7 +95,22 @@ const Userspage = () => {
     }
     const users = data?.data || []
 
+    const onFilterChange = (changedValues: FieldData[]) => {
+        //console.log('changedValues', changedValues);
 
+        const changedFilterFields = changedValues.map((item) => ({
+            [item.name[0]]: item.value,
+        })).reduce((acc, item) => ({ ...acc, ...item }), {})
+
+        //console.log(changedFilterFields);
+
+        setQueryParams((prev) => ({
+            ...prev,
+            ...changedFilterFields,
+
+        }))
+
+    }
 
     const onHandleSubmit = async () => {
 
@@ -120,20 +140,20 @@ const Userspage = () => {
                     )}
                 </Flex>
 
-                <UsersFilter
-                    onFilterChange={(filterName, filterValue) => {
-                        console.log(`Filter changed: ${filterName} = ${filterValue}`)
-                    }}
-                >
+                <Form form={filterForm} onFieldsChange={onFilterChange}>
+                    <UsersFilter>
 
-                    <Button
-                        type='primary'
-                        icon={<PlusOutlined />}
-                        onClick={() => setDrawerOpen(true)}
-                    >
-                        Create User
-                    </Button>
-                </UsersFilter>
+                        <Button
+                            type='primary'
+                            icon={<PlusOutlined />}
+                            onClick={() => setDrawerOpen(true)}
+                        >
+                            Create User
+                        </Button>
+                    </UsersFilter>
+                </Form>
+
+
                 <Table
                     columns={columns}
                     dataSource={users}
