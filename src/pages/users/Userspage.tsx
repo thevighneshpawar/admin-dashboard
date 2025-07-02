@@ -1,5 +1,5 @@
 import { Breadcrumb, Button, Drawer, Flex, Form, Space, Spin, Table, theme } from 'antd'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { LoadingOutlined, PlusOutlined, RightOutlined } from '@ant-design/icons'
 import { Link, Navigate } from 'react-router-dom'
 import { createUser, getUsers } from '../../http/api'
@@ -9,6 +9,7 @@ import { useAuthStore } from '../../store'
 import UsersFilter from './UsersFilter'
 import UserForm from './forms/UserForm'
 import { PER_PAGE } from '../../constants'
+import { debounce } from 'lodash'
 
 const columns = [
     {
@@ -95,6 +96,17 @@ const Userspage = () => {
     }
     const users = data?.data || []
 
+    const debouncedQUpdate = useMemo(() => {
+
+        return debounce((value: string | undefined) => {
+            setQueryParams((prev) => ({
+                ...prev,
+                q: value,
+            }))
+        }, 1000)
+
+    }, [])
+
     const onFilterChange = (changedValues: FieldData[]) => {
         //console.log('changedValues', changedValues);
 
@@ -104,11 +116,21 @@ const Userspage = () => {
 
         //console.log(changedFilterFields);
 
-        setQueryParams((prev) => ({
-            ...prev,
-            ...changedFilterFields,
 
-        }))
+        if ('q' in changedFilterFields) {
+
+            debouncedQUpdate(changedFilterFields.q as string) // if q is changed, update the query params with debounce
+
+        } else {
+
+            setQueryParams((prev) => ({
+                ...prev,
+                ...changedFilterFields,
+
+            }))
+        }
+
+
 
     }
 
