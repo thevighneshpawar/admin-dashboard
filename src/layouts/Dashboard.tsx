@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Navigate, NavLink, Outlet } from 'react-router-dom'
+import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../store'
 import Icon, { BellFilled, HomeOutlined, UserOutlined } from '@ant-design/icons';
 import { Avatar, Badge, Breadcrumb, Dropdown, Flex, Layout, Menu, Space, theme } from 'antd';
@@ -67,7 +67,7 @@ const getMenuItems = (role: string) => {
 
 const Dashboard = () => {
 
-
+    const location = useLocation();
 
     const { user } = useAuthStore()
     const items = getMenuItems(user?.role || 'user');
@@ -80,7 +80,7 @@ const Dashboard = () => {
     } = theme.useToken();
 
     if (user === null) {
-        return <Navigate to="/auth/login" replace={true} />;
+        return <Navigate to={`/auth/login?returnTo=${location.pathname}`} replace={true} />;
     }
     return (
         <div>

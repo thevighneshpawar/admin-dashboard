@@ -32,7 +32,7 @@ const Root = () => {
 
     useEffect(() => {
 
-        console.log(data);
+        //  console.log(data);
 
         if (data) {
             setUser(data);
