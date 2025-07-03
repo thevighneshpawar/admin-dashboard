@@ -2,7 +2,7 @@ import { Breadcrumb, Button, Drawer, Flex, Form, Space, Spin, Table, theme } fro
 import React, { useMemo, useState } from 'react'
 import { LoadingOutlined, PlusOutlined, RightOutlined } from '@ant-design/icons'
 import { Link, Navigate } from 'react-router-dom'
-import { createUser, getUsers } from '../../http/api'
+import { createUser, getUsers, updateUser } from '../../http/api'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { createUserData, FieldData, User } from '../../types'
 import { useAuthStore } from '../../store'
@@ -43,17 +43,36 @@ const columns = [
             <div>{record.tenant?.name ? record.tenant.name : " "}</div>
         )
 
-    }
+    },
+
 ]
 
 const Userspage = () => {
 
     const queryClient = useQueryClient() // react query client to manage the state of serverside data
-
     const [form] = Form.useForm() // antd form it gies all data of form
     const [filterForm] = Form.useForm()
+    const [CurrentEditingUser, setCurrentEditingUser] = useState<User | null>(null) // state to manage the current user for editin
+    const [draweropen, setDrawerOpen] = useState(false)
+    const [queryParams, setQueryParams] = useState({
+        currentPage: 1,
+        perPage: PER_PAGE,
+    })
+    const {
+        token: { colorBgLayout },
+    } = theme.useToken();
+
+    React.useEffect(() => {
+
+        if (CurrentEditingUser) {
+            setDrawerOpen(true) // open the drawer when CurrentEditingUser is set
+            form.setFieldsValue({ ...CurrentEditingUser, tenantId: CurrentEditingUser.tenant?.id }) // set the form fields with the current user data
+        }
+
+    }, [CurrentEditingUser, form]) // effect to handle side effects when CurrentEditingUser changes, currently empty
 
 
+    // React Queries
     const { mutate: userMutate } = useMutation({
         mutationKey: ["user"],
         mutationFn: async (user: createUserData) => createUser(user).then(res => res.data),
@@ -62,22 +81,6 @@ const Userspage = () => {
             return;
         },
     });
-
-    const {
-        token: { colorBgLayout },
-    } = theme.useToken();
-
-
-    const [queryParams, setQueryParams] = useState({
-
-        currentPage: 1,
-        perPage: PER_PAGE,
-
-    }) // state to manage the query parameters for pagination and sorting
-
-
-
-    const [draweropen, setDrawerOpen] = useState(false)
     const { data, isFetching, isError, error } = useQuery({
         queryKey: ['users', queryParams],
         queryFn: () => {
@@ -94,17 +97,16 @@ const Userspage = () => {
         placeholderData: keepPreviousData
     })
 
-    const { user } = useAuthStore()
-    if (user?.role !== 'admin') {
-        return (
-            <Navigate
-                to='/'
-                replace
-            />
-        ) // Redirect if not admin
-    }
-    const users = data?.data || []
+    const { mutate: updateMutate } = useMutation({
+        mutationKey: ["update-user"],
+        mutationFn: async (user: createUserData) => updateUser(user, CurrentEditingUser!.id).then(res => res.data),
+        onSuccess: async () => {
+            queryClient.invalidateQueries({ queryKey: ['users'] }) // invalidate the users query to refetch the data
+            return;
+        },
+    });
 
+    //search
     const debouncedQUpdate = useMemo(() => {
 
         return debounce((value: string | undefined) => {
@@ -116,7 +118,6 @@ const Userspage = () => {
         }, 1000)
 
     }, [])
-
     const onFilterChange = (changedValues: FieldData[]) => {
         //console.log('changedValues', changedValues);
 
@@ -144,13 +145,36 @@ const Userspage = () => {
 
     }
 
+    //submission
     const onHandleSubmit = async () => {
 
-        await form.validateFields() // validate the form fields
-        await userMutate(form.getFieldsValue()) // get the form data and pass it to the mutation
+        const isEditMode = !!CurrentEditingUser
+        await form.validateFields()
+        if (isEditMode) {
+            await updateMutate(form.getFieldsValue())
+        } else {
+            await userMutate(form.getFieldsValue())
+        }
+
         form.resetFields()
-        setDrawerOpen(false) // close the drawer after successful submission
+        setCurrentEditingUser(null)
+        setDrawerOpen(false)
     }
+
+
+
+    const { user } = useAuthStore()
+    if (user?.role !== 'admin') {
+        return (
+            <Navigate
+                to='/'
+                replace
+            />
+        ) // Redirect if not admin
+    }
+    const users = data?.data || []
+
+
     return (
         <div>
             <Space
@@ -187,7 +211,22 @@ const Userspage = () => {
 
 
                 <Table
-                    columns={columns}
+                    columns={[...columns, {
+                        title: 'Actions',
+                        render: (_: string, record: User) => {
+
+                            //console.log(record);
+                            // console.log(_);
+
+                            return <Space>
+                                <Button type='link'
+                                    onClick={() => setCurrentEditingUser(record)}
+                                >Edit</Button>
+                            </Space>
+
+                        }
+
+                    }]}
                     dataSource={users}
                     pagination={{
                         current: queryParams.currentPage,
@@ -205,13 +244,14 @@ const Userspage = () => {
                 />
 
                 <Drawer
-                    title='Create user'
+                    title={CurrentEditingUser ? "Edit User" : "Create User"}
                     width={720}
                     styles={{ body: { backgroundColor: colorBgLayout } }}
                     destroyOnHidden={true}
                     onClose={() => {
                         form.resetFields(); // reset the form fields when drawer is closed
                         setDrawerOpen(false)
+                        setCurrentEditingUser(null) // reset the current editing user
                     }}
                     open={draweropen}
                     extra={<Space>
@@ -224,7 +264,7 @@ const Userspage = () => {
                 >
 
                     <Form form={form} layout='vertical'>
-                        <UserForm />
+                        <UserForm isEditMode={!!CurrentEditingUser} />
                     </Form>
                 </Drawer>
             </Space>

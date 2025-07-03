@@ -5,7 +5,7 @@ import { getRestaurants } from '../../../http/api'
 import type { Tenant } from '../../../types'
 
 
-const UserForm = () => {
+const UserForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
 
     const { data, isLoading, isError, error } = useQuery({
         queryKey: ['tenants'],
@@ -50,22 +50,26 @@ const UserForm = () => {
 
                 </Card>
 
-                <Card title={"Security Info"} >
+                {
+                    !isEditMode &&
+                    <Card title={"Security Info"} >
 
-                    <Row gutter={24}>
-                        <Col span={12}>
-                            <Form.Item label={'Password'} name="password" rules={[
-                                { required: true, message: 'Password is required' },
-                                { min: 6, message: 'Password must be at least 6 characters' },
-                                { whitespace: true, message: 'Password cannot be empty' }
-                            ]}>
-                                <Input placeholder="Password" type='password' size='large' />
-                            </Form.Item>
-                        </Col>
+                        <Row gutter={24}>
+                            <Col span={12}>
+                                <Form.Item label={'Password'} name="password" rules={[
+                                    { required: true, message: 'Password is required' },
+                                    { min: 6, message: 'Password must be at least 6 characters' },
+                                    { whitespace: true, message: 'Password cannot be empty' }
+                                ]}>
+                                    <Input placeholder="Password" type='password' size='large' />
+                                </Form.Item>
+                            </Col>
 
-                    </Row>
+                        </Row>
 
-                </Card>
+                    </Card>
+                }
+
 
                 <Card title={"Auth Info"} >
 
@@ -75,6 +79,7 @@ const UserForm = () => {
                                 { required: true, message: 'Role is required' },
                             ]}>
                                 <Select
+                                    id='selectBoxUserForm'
                                     style={{ width: "100%" }}
                                     size='large'
                                     allowClear={true}
