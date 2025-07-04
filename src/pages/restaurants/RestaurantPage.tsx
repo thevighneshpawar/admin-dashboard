@@ -2,15 +2,15 @@ import { Breadcrumb, Button, Drawer, Form, Space, Table } from 'antd'
 import React, { useMemo, useState } from 'react'
 import { PlusOutlined, RightOutlined } from '@ant-design/icons'
 import { Link, Navigate } from 'react-router-dom'
-import { createTenants, getRestaurants, } from '../../http/api'
+import { createTenants, deleteTenant, getRestaurants, updateTenant, } from '../../http/api'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuthStore } from '../../store'
 import RestaurantForm from './forms/RestaurantForm'
 import RestaurantFilter from './RestaurantFilter'
-import type { createTenantData, FieldData } from '../../types'
+import type { createTenantData, FieldData, Tenant } from '../../types'
 import { PER_PAGE } from '../../constants'
-import { debounce } from 'lodash'
+import { debounce, set } from 'lodash'
 
 const columns = [
     {
@@ -43,6 +43,19 @@ const RestaurantPage = () => {
         currentPage: 1,
         perPage: PER_PAGE,
     }) // state to manage the pagination of the table
+    const [currentEditingRestaurant, setCurrentEditingRestaurant] = useState<Tenant | null>(null) // state to manage the current restaurant for editing
+
+
+
+    React.useEffect(() => {
+
+        if (currentEditingRestaurant) {
+            setDrawerOpen(true) // open the drawer when currentEditingRestaurant is set
+            form.setFieldsValue({ ...currentEditingRestaurant }) // set the form fields with the current user data
+        }
+
+    }, [currentEditingRestaurant, form])
+
 
     const { mutate: tenantMutate } = useMutation({
         mutationKey: ["tenant"],
@@ -53,12 +66,39 @@ const RestaurantPage = () => {
         },
     });
 
+    const { mutate: updatetenantMutate } = useMutation({
+        mutationKey: ["update-tenant"],
+        mutationFn: async (tenant: createTenantData) => updateTenant(tenant, currentEditingRestaurant!.id).then(res => res.data),
+        onSuccess: async () => {
+            queryClient.invalidateQueries({ queryKey: ['tenants'] }) // invalidate the tenants query to refetch the data
+            return;
+        },
+    });
+
+    const { mutate: deletetenantMutate } = useMutation({
+        mutationKey: ["delete-tenant"],
+        mutationFn: async (id: number) => deleteTenant(id).then(res => res.data),
+        onSuccess: async () => {
+            queryClient.invalidateQueries({ queryKey: ['tenants'] }) // invalidate the tenants query to refetch the data
+            return;
+        },
+    });
+
+
+
 
     const onHandleSubmit = async () => {
 
         await form.validateFields() // validate the form fields
-        await tenantMutate(form.getFieldsValue()) // get the form data and pass it to the mutation
+        const isEditMode = !!currentEditingRestaurant // check if the form is in edit mode or create mode
+
+        if (isEditMode) {
+            await updatetenantMutate(form.getFieldsValue()) // if in edit mode, pass the id of the restaurant to update it
+        } else {
+            await tenantMutate(form.getFieldsValue())
+        }
         form.resetFields()
+        setCurrentEditingRestaurant(null) // reset the current editing restaurant
         setDrawerOpen(false) // close the drawer after successful submission
     }
 
@@ -128,6 +168,8 @@ const RestaurantPage = () => {
     }
 
 
+
+
     return (
         <div>
             <Space
@@ -162,7 +204,24 @@ const RestaurantPage = () => {
                 </Form>
 
                 <Table
-                    columns={columns}
+                    columns={[...columns, {
+                        title: 'Actions',
+                        key: 'actions',
+                        render: (_: string, record: User) => {
+
+
+                            return <Space>
+                                <Button type='link'
+                                    onClick={() => setCurrentEditingRestaurant(record)}
+                                >Edit</Button>
+                                <Button type='link'
+                                    onClick={() => deletetenantMutate(record.id)}
+                                >Delete</Button>
+                            </Space>
+
+                        }
+
+                    }]}
                     dataSource={restaurants}
                     pagination={{
                         current: queryParams.currentPage,
@@ -178,10 +237,14 @@ const RestaurantPage = () => {
                     }} />
 
                 <Drawer
-                    title='Create Restaurant'
+                    title={currentEditingRestaurant ? 'Edit Restaurant' : 'Create Restaurant'}
                     width={720}
                     destroyOnHidden={true}
-                    onClose={() => setDrawerOpen(false)}
+                    onClose={() => {
+                        form.resetFields(); // reset the form fields when drawer is closed
+                        setCurrentEditingRestaurant(null) // reset the current editing restaurant
+                        setDrawerOpen(false)
+                    }}
                     open={draweropen}
                     extra={<Space>
                         <Button type="primary" onClick={onHandleSubmit}>Save</Button>

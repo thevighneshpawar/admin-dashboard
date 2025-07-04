@@ -14,7 +14,7 @@ const RestaurantFilter = ({ children }: RestaurantFilterProps) => {
                 <Form.Item name='q'>
 
 
-                    <Col span={12} >
+                    <Col span={36} >
 
                         <Input.Search
 
