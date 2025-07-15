@@ -1,5 +1,8 @@
+import { useQuery } from '@tanstack/react-query'
 import { Card, Col, Form, Input, Row, Select, Space, Switch, Typography } from 'antd'
 import React from 'react'
+import { getCategories, getRestaurants } from '../../http/api'
+import type { category, Tenant } from '../../types'
 
 
 type productsFilterProps = {
@@ -10,11 +13,29 @@ type productsFilterProps = {
 const ProductFilter = ({ children }: productsFilterProps) => {
 
 
+    const { data: restaurants } = useQuery({
+        queryKey: ['restaurants'],
+        queryFn: () => {
+            return getRestaurants('perPage=100&currentPage=1')
+        },
+
+    })
+
+
+
+    const { data: categories } = useQuery({
+        queryKey: ['categories'],
+        queryFn: () => {
+            return getCategories();
+        },
+
+    })
+
 
 
 
     return <Card>
-        <Row justify={'space-between'} align={'middle'}>
+        < Row justify={'space-between'} align={'middle'} >
             <Col>
                 <Row gutter={10} align={'middle'}>
                     <Col>
@@ -30,23 +51,31 @@ const ProductFilter = ({ children }: productsFilterProps) => {
                                 allowClear={true}
                                 placeholder='Select Category'
                             >
-                                <Select.Option value='admin'>Admin</Select.Option>
-                                <Select.Option value='customer'>Customer</Select.Option>
-                                <Select.Option value='manager'>Manager</Select.Option>
+                                {
+                                    categories?.data.map((category: category) => (
+                                        <Select.Option key={category._id} value={category.id}>
+                                            {category.name}
+                                        </Select.Option>
+                                    ))
+                                }
                             </Select>
                         </Form.Item>
                     </Col>
 
                     <Col>
-                        <Form.Item name="tenant" style={{ marginBottom: 0 }}>
+                        <Form.Item name="restaurant" style={{ marginBottom: 0 }}>
                             <Select
                                 style={{ width: 150, marginLeft: 10 }}
                                 allowClear={true}
                                 placeholder='Select Restaurant'
                             >
-                                <Select.Option value='admin'>Admin</Select.Option>
-                                <Select.Option value='customer'>Customer</Select.Option>
-                                <Select.Option value='manager'>Manager</Select.Option>
+                                {
+                                    restaurants?.data.data.map((restaurant: Tenant) => (
+                                        <Select.Option key={restaurant.id} value={restaurant.id}>
+                                            {restaurant.name}
+                                        </Select.Option>
+                                    ))
+                                }
                             </Select>
                         </Form.Item>
                     </Col>
@@ -66,8 +95,8 @@ const ProductFilter = ({ children }: productsFilterProps) => {
             <Col>
                 {children}
             </Col>
-        </Row>
-    </Card>
+        </Row >
+    </Card >
 }
 
 export default ProductFilter

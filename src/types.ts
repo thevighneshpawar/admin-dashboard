@@ -32,13 +32,12 @@ export type createTenantData = {
   address: string;
 };
 
-export type Tenant = {
-  id: number;
-  name: string;
-  address: string;
-};
-
 export type FieldData = {
   name: string;
   value?: string;
+};
+
+export type category = {
+  _id: string;
+  name: string;
 };

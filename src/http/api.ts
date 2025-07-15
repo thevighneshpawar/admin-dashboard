@@ -34,3 +34,5 @@ export const deleteTenant = (id: number) =>
   api.delete(`${AUTH_SERVICE}/tenants/${id}`);
 
 //catalog service
+
+export const getCategories = () => api.get(`${CATALOG_SERVICE}/categories`);
