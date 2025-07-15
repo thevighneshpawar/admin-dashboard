@@ -7,6 +7,8 @@ import Root from "./layouts/Root";
 
 import Userspage from "./pages/users/Userspage";
 import RestaurantPage from "./pages/restaurants/RestaurantPage";
+import ProductPage from "./pages/products/ProductPage";
+
 
 export const router = createBrowserRouter([
 
@@ -36,7 +38,7 @@ export const router = createBrowserRouter([
                     },
                     {
                         path: "products",
-                        element: <Userspage />
+                        element: <ProductPage />
                     },
                     {
                         path: "promos",
