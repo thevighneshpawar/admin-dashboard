@@ -1,9 +1,12 @@
-import { Breadcrumb, Space, Flex } from 'antd'
-import { RightOutlined } from '@ant-design/icons'
+import { Breadcrumb, Space, Flex, Form, Button } from 'antd'
+import { RightOutlined, PlusOutlined } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
+import ProductFilter from './ProductFilter'
 
 
 const ProductPage = () => {
+
+    const [filterForm] = Form.useForm()
     return (
         <div>
             <Space
@@ -16,14 +19,21 @@ const ProductPage = () => {
                         separator={<RightOutlined />}
                         items={[{ title: <Link to='/'>Dashboard</Link> }, { title: 'Products' }]}
                     />
-                    {/* {isFetching && <Spin indicator={<LoadingOutlined spin />} />}
-                    {isError && (
-                        <p>
-                            Error:{' '}
-                            {error instanceof Error ? error.message : 'An error occurred'}
-                        </p>
-                    )} */}
+
                 </Flex>
+
+                <Form form={filterForm} onFieldsChange={() => { }}>
+                    <ProductFilter>
+
+                        <Button
+                            type='primary'
+                            icon={<PlusOutlined />}
+                            onClick={() => { }}
+                        >
+                            Create Product
+                        </Button>
+                    </ProductFilter>
+                </Form>
 
             </Space>
         </div>
