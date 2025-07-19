@@ -3,6 +3,7 @@ import { Card, Col, Form, Input, Row, Select, Space, Switch, Typography } from '
 import React from 'react'
 import { getCategories, getRestaurants } from '../../http/api'
 import type { category, Tenant } from '../../types'
+import { useAuthStore } from '../../store'
 
 
 type productsFilterProps = {
@@ -12,6 +13,7 @@ type productsFilterProps = {
 
 const ProductFilter = ({ children }: productsFilterProps) => {
 
+    const { user } = useAuthStore();
 
     const { data: restaurants } = useQuery({
         queryKey: ['restaurants'],
@@ -34,7 +36,7 @@ const ProductFilter = ({ children }: productsFilterProps) => {
 
 
 
-    return <Card>
+    return <Card >
         < Row justify={'space-between'} align={'middle'} >
             <Col>
                 <Row gutter={10} align={'middle'}>
@@ -45,7 +47,7 @@ const ProductFilter = ({ children }: productsFilterProps) => {
                     </Col>
 
                     <Col>
-                        <Form.Item name="category" style={{ marginBottom: 0 }}>
+                        <Form.Item name="categoryId" style={{ marginBottom: 0 }}>
                             <Select
                                 style={{ width: 150, marginLeft: 10 }}
                                 allowClear={true}
@@ -62,33 +64,36 @@ const ProductFilter = ({ children }: productsFilterProps) => {
                         </Form.Item>
                     </Col>
 
-                    <Col>
-                        <Form.Item name="restaurant" style={{ marginBottom: 0 }}>
-                            <Select
-                                style={{ width: 150, marginLeft: 10 }}
-                                allowClear={true}
-                                placeholder='Select Restaurant'
-                            >
-                                {
-                                    restaurants?.data.data.map((restaurant: Tenant) => (
-                                        <Select.Option key={restaurant.id} value={restaurant.id}>
-                                            {restaurant.name}
-                                        </Select.Option>
-                                    ))
-                                }
-                            </Select>
-                        </Form.Item>
-                    </Col>
+                    {
+                        user?.role === 'admin' &&
+                        <Col>
+                            <Form.Item name="tenantId" style={{ marginBottom: 0 }}>
+                                <Select
+                                    style={{ width: 150, marginLeft: 10 }}
+                                    allowClear={true}
+                                    placeholder='Select Restaurant'
+                                >
+                                    {
+                                        restaurants?.data.data.map((restaurant: Tenant) => (
+                                            <Select.Option key={restaurant.id} value={restaurant.id}>
+                                                {restaurant.name}
+                                            </Select.Option>
+                                        ))
+                                    }
+                                </Select>
+                            </Form.Item>
+                        </Col>
+                    }
 
                     <Col>
-                        <Form.Item name="ispublish" style={{ marginBottom: 0 }}>
-                            <Space>
-                                <Switch defaultChecked />
-                                <Typography.Text>
-                                    Show Only Published
-                                </Typography.Text>
-                            </Space>
-                        </Form.Item>
+                        < Space>
+                            <Form.Item name="isPublish" style={{ marginBottom: 0 }}>
+                                <Switch defaultChecked={false} onChange={() => { }} />
+                            </Form.Item>
+                            <Typography.Text style={{ marginBottom: 0, display: 'block' }}>
+                                Show only published
+                            </Typography.Text>
+                        </Space>
                     </Col>
                 </Row>
             </Col>
