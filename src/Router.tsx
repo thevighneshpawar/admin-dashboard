@@ -9,6 +9,7 @@ import Userspage from "./pages/users/Userspage";
 import RestaurantPage from "./pages/restaurants/RestaurantPage";
 import ProductPage from "./pages/products/ProductPage";
 import Orders from "./pages/orders/Orders";
+import SingleOrder from "./pages/orders/SingleOrder";
 
 export const router = createBrowserRouter([
   {
@@ -39,6 +40,10 @@ export const router = createBrowserRouter([
           {
             path: "/orders",
             element: <Orders />,
+          },
+          {
+            path: "/orders/:orderId",
+            element: <SingleOrder />,
           },
           {
             path: "promos",
