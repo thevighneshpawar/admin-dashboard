@@ -8,64 +8,54 @@ import Root from "./layouts/Root";
 import Userspage from "./pages/users/Userspage";
 import RestaurantPage from "./pages/restaurants/RestaurantPage";
 import ProductPage from "./pages/products/ProductPage";
-
+import Orders from "./pages/orders/Orders";
 
 export const router = createBrowserRouter([
-
-    {
-
+  {
+    path: "/",
+    element: <Root />,
+    children: [
+      {
         path: "/",
-        element: <Root />,
+        element: <Dashboard />,
         children: [
+          {
+            path: "",
+            element: <Homepage />,
+          },
 
-            {
-                path: "/",
-                element: <Dashboard />,
-                children: [
-
-                    {
-                        path: "",
-                        element: <Homepage />
-                    },
-
-                    {
-                        path: "users",
-                        element: <Userspage />
-                    },
-                    {
-                        path: "restaurants",
-                        element: <RestaurantPage />
-                    },
-                    {
-                        path: "products",
-                        element: <ProductPage />
-                    },
-                    {
-                        path: "promos",
-                        element: <Userspage />
-                    }
-
-
-                ]
-            },
-            {
-
-                path: "/auth",
-                element: <NonAuth />,
-                children: [
-                    {
-                        path: "login",
-                        element: <LoginPage />
-                    },
-
-                ]
-
-
-            },
-
-        ]
-
-    },
-
-
-])
+          {
+            path: "users",
+            element: <Userspage />,
+          },
+          {
+            path: "restaurants",
+            element: <RestaurantPage />,
+          },
+          {
+            path: "products",
+            element: <ProductPage />,
+          },
+          {
+            path: "/orders",
+            element: <Orders />,
+          },
+          {
+            path: "promos",
+            element: <Userspage />,
+          },
+        ],
+      },
+      {
+        path: "/auth",
+        element: <NonAuth />,
+        children: [
+          {
+            path: "login",
+            element: <LoginPage />,
+          },
+        ],
+      },
+    ],
+  },
+]);
