@@ -20,7 +20,7 @@ export const self = () => {
   return res;
 };
 
-export const logout = () => api.post("${AUTH_SERVICE}/auth/logout", {});
+export const logout = () => api.post(`${AUTH_SERVICE}/auth/logout`, {});
 export const getUsers = (queryString: string) =>
   api.get(`${AUTH_SERVICE}/users?${queryString}`);
 export const getRestaurants = (queryString: string) =>

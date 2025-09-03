@@ -8,6 +8,9 @@ import type { Order } from "../../types";
 import { getOrders } from "../../http/api";
 import { capitalizeFirst } from "../products/helpers";
 import { colorMapping } from "../../constants";
+import socket from "../../lib/socket";
+import React from "react";
+import { useAuthStore } from "../../store";
 
 const columns = [
   {
@@ -104,6 +107,29 @@ const columns = [
 const TENANT_ID = 1;
 
 const Orders = () => {
+  const { user } = useAuthStore();
+
+  React.useEffect(() => {
+    if (user?.tenant) {
+      socket.on("order-update", (data) => {
+        console.log("data received: ", data);
+      });
+
+      socket.on("join", (data) => {
+        console.log("User joined in: ", data);
+      });
+
+      socket.emit("join", {
+        tenantId: user.tenant.id,
+      });
+    }
+
+    return () => {
+      socket.off("join");
+      socket.off("order-update");
+    };
+  }, []);
+
   const { data: orders } = useQuery({
     queryKey: ["orders"],
     queryFn: () => {
